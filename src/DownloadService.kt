@@ -17,10 +17,11 @@ import kotlin.math.roundToInt
 class DownloadService {
 
     @ExperimentalIoApi
-    fun downloadFile(): Flow<DownloadStatus> = flow {
+    fun downloadFile(url: String): Flow<DownloadStatus> = flow {
 
         val httpClient = HttpClient()
-        val statement = httpClient.request<HttpStatement>("https://ghostscript.com/~robin/pdf_reference17.pdf")
+        val statement = httpClient.request<HttpStatement>(url)
+//        "https://ghostscript.com/~robin/pdf_reference17.pdf"
         statement.execute {
             val byteArray = ByteArray(it.contentLength()?.lowInt ?:0)
             val readChannel = it.content
@@ -38,7 +39,7 @@ class DownloadService {
             }.onSuccess {
 
                 runCatching {
-                    val file = File("/Users/paul/pdf_reference17.pdf")
+                    val file = File("/Users/ykh/${url.fileName()}")
                     file.writeBytes(byteArray)
                 }.onFailure { throwable ->
                     emit(DownloadStatus.Error("File Write Error : ${throwable.localizedMessage}"))
@@ -48,6 +49,14 @@ class DownloadService {
             }
         }
     }
+}
+
+fun String.fileName(): String {
+    val fullName = this.substringAfterLast("/")
+    val fileName = fullName.substringBeforeLast(".")
+    val extension = fullName.substringAfterLast(".")
+
+    return "${fileName.substringBeforeLast(".")}.${extension.substringAfterLast(".")}"
 }
 
 sealed class DownloadStatus {
