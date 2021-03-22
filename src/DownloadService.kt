@@ -21,7 +21,7 @@ class DownloadService {
 
         val httpClient = HttpClient()
         val statement = httpClient.request<HttpStatement>(url)
-//        "https://ghostscript.com/~robin/pdf_reference17.pdf"
+
         statement.execute {
             val byteArray = ByteArray(it.contentLength()?.lowInt ?:0)
             val readChannel = it.content
@@ -34,18 +34,14 @@ class DownloadService {
                     val progress = (offset * 100f / byteArray.size).roundToInt()
                     emit(DownloadStatus.Progress(progress))
                 } while (currentRead > 0)
+
+                val file = File("/Users/paul/${url.fileName()}")
+                file.writeBytes(byteArray)
             }.onFailure { throwable ->
+                //TODO:exceotion 세분화하기
                 emit(DownloadStatus.Error("File Download Error : ${throwable.localizedMessage}"))
             }.onSuccess {
-
-                runCatching {
-                    val file = File("/Users/ykh/${url.fileName()}")
-                    file.writeBytes(byteArray)
-                }.onFailure { throwable ->
-                    emit(DownloadStatus.Error("File Write Error : ${throwable.localizedMessage}"))
-                }.onSuccess {
-                    emit(DownloadStatus.Success)
-                }
+                emit(DownloadStatus.Success)
             }
         }
     }
