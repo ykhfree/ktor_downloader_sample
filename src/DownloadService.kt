@@ -35,7 +35,7 @@ class DownloadService {
                     emit(DownloadStatus.Progress(progress))
                 } while (currentRead > 0)
 
-                val file = File("/Users/paul/${url.fileName()}")
+                val file = File("${System.getProperty("user.home")}/${url.fileName()}")
                 file.writeBytes(byteArray)
             }.onFailure { throwable ->
                 //TODO:exceotion 세분화하기
@@ -48,11 +48,7 @@ class DownloadService {
 }
 
 fun String.fileName(): String {
-    val fullName = this.substringAfterLast("/")
-    val fileName = fullName.substringBeforeLast(".")
-    val extension = fullName.substringAfterLast(".")
-
-    return "${fileName.substringBeforeLast(".")}.${extension.substringAfterLast(".")}"
+    return this.substringAfterLast("/")
 }
 
 sealed class DownloadStatus {
